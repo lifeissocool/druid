@@ -22,16 +22,19 @@ import com.alibaba.druid.sql.dialect.db2.ast.stmt.DB2SelectQueryBlock;
 import com.alibaba.druid.sql.dialect.hive.parser.HiveCreateTableParser;
 import com.alibaba.druid.sql.dialect.hive.stmt.HiveCreateTableStatement;
 import com.alibaba.druid.sql.dialect.mysql.ast.expr.MySqlOrderingExpr;
+import com.alibaba.druid.sql.dialect.oracle.ast.stmt.OracleSelectJoin;
 import com.alibaba.druid.util.FnvHash;
 import com.alibaba.druid.util.JdbcConstants;
 import com.alibaba.druid.util.StringUtils;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class SQLSelectParser extends SQLParser {
     protected SQLExprParser      exprParser;
     protected SQLSelectListCache selectListCache;
-
+    protected LinkedList<OracleSelectJoin> tempList = new LinkedList<>();
+    protected LinkedList<LinkedList<OracleSelectJoin>> stackList = new LinkedList<>();
     public SQLSelectParser(String sql){
         super(sql);
     }
@@ -953,8 +956,15 @@ public class SQLSelectParser extends SQLParser {
 
         lexer.nextToken();
 
-        queryBlock.setFrom(
-                parseTableSource());
+        tempList=new LinkedList<OracleSelectJoin>();
+        stackList.add(tempList);
+        SQLTableSource tableSource=parseTableSource();
+        stackList.removeLast();
+        if (stackList.size() > 0) {
+            tempList = stackList.getLast();
+        }
+        queryBlock.setFrom(tableSource
+        );
     }
 
     public SQLTableSource parseTableSource() {
