@@ -53,8 +53,8 @@ public class OracleSelectTest91 extends OracleTest {
 
             assertEquals("SELECT *\n" +
                     "FROM hdr a\n" +
-                    "INNER JOIN sh s ON a.va = s.va \n" +
-                    "\tINNER JOIN ca c ON c.id = s.id ", text);
+                    "\tINNER JOIN (sh s\n" +
+                    "\tINNER JOIN ca c ON c.id = s.id ) ON a.va = s.va ", text);
         }
 
         System.out.println("Tables : " + visitor.getTables());
